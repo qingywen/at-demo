@@ -3,20 +3,21 @@
     <div class="header"><img src="./assets/logo.png" /></div>
     <div class="imitate-box">
       <div
-        id="imitate-input"
+        id="imitateInput"
         v-html="content"
-        @input="textInput"
         contenteditable
+        @input="changeHandler"
+        @keydown="keydownHandler"
       ></div>
       <div
+        v-if="filteredList.length > 0"
         id="imitateTip"
         class="imitate-tip"
         :style="{ left: tipPos.x + 'px', top: tipPos.y + 'px' }"
-        v-if="showTip"
       >
         <div class="tip-box">
-          <el-radio-group v-model="atWho">
-            <el-radio-button v-for="item in list" :key="item.name" :label="item.name">
+          <el-radio-group ref="imitateTip" class="is-focus" v-model="picked" @keyup.native.enter="insertName">
+            <el-radio-button v-for="item in filteredList" :key="item.name" :label="item.name">
               <img class="title" :src="item.picture" />
               <span>{{ item.name }}</span>
             </el-radio-button>
@@ -54,28 +55,35 @@ export default {
       ]
     return {
       list,
+      filteredList: [],
       content: "",
-      atWho: list[0].name,
-      showTip: false,
+      picked: "",
       tipPos: {
         x: 0,
         y: 0,
       },
+      insertFlag: null,
     };
   },
+  mounted() {
+
+
+  },
   methods: {
-    textInput(e) {
-      let content = e.target.innerHTML;
-      let cursorPos = this.getCursorPos();
-      // 如果是@，且不是email
-      let isAt = e.data === "@";
-      let isEmail =
-        cursorPos > 1 && isAt && /[A-Za-z0-9]/.test(content[cursorPos - 2]);
-      if (isAt && !isEmail) {
-        this.tipPos = this.getTipPos();
-        this.showTip = true;
-      } else {
-        this.showTip = false;
+    changeHandler(e) {
+      let content = e.target.innerHTML
+      let cursorPos = this.getCursorPos()
+      let lastAtPos = content.lastIndexOf('@', cursorPos-1)
+      if(lastAtPos < 0) return;
+      let filter = content.slice(lastAtPos + 1, cursorPos)
+      this.tipPos = this.getTipPos();
+      this.filteredList = this.list.filter(item=>item.name.indexOf(filter) > -1)
+      this.picked = this.filteredList[0] && this.filteredList[0].name
+    },
+    keydownHandler(e) {
+      if(e.keyCode === 13 && this.filteredList.length > 0) {
+        // 插入字符串
+        console.log(this.picked)
       }
     },
     getCursorPos() {
@@ -106,6 +114,12 @@ export default {
         y: posY,
       };
     },
+    insertName(val) {
+      console.log('val1:', this.picked)
+    },
+    insertPicked() {
+      // 将filter置之不理;插入选中符号；不显示提示框
+    }
   },
 };
 </script>
@@ -118,7 +132,7 @@ export default {
 .header {
   text-align: center;
 }
-#imitate-input {
+#imitateInput {
   width: 300px;
   line-height: 20px;
   max-height: 100px;
@@ -131,10 +145,10 @@ export default {
   margin: auto;
   overflow-y: auto;
 }
-#imitate-input:hover {
+#imitateInput:hover {
   border-color: #c0c4cc;
 }
-#imitate-input:focus {
+#imitateInput:focus {
   outline: none;
   border-color: #409eff;
 }
