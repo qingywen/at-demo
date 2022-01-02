@@ -147,16 +147,12 @@ export default {
 					let slice = textNode.data.slice(lastAtPos + 1, cursorPos - 1);
 					if(this.list.map(item=>item.name).indexOf(slice) > -1) {
 						// 先移光标
-
-						lastEditRange.setStart(textNode, lastAtPos);
-						lastEditRange.collapse(true);
-						selection.removeAllRanges();
-						selection.addRange(lastEditRange);
+						// lastEditRange.setStart(textNode, lastAtPos);
+						// lastEditRange.collapse(true);
+						// selection.removeAllRanges();
+						// selection.addRange(lastEditRange);
 
 						// 再删除
-						console.log('textNode:', textNode)
-						console.log('lastAtPos:', lastAtPos)
-						console.log('count:', count)
 						textNode.deleteData(lastAtPos, count)
 						e.preventDefault();
 						e.stopPropagation();
@@ -259,9 +255,9 @@ export default {
 <style>
 #inputEdit {
   width: 300px;
-  line-height: 20px;
+  line-height: 14px;
   max-height: 100px;
-  padding: 5px 15px;
+  padding: 10px 15px;
   border: 1px solid #dcdfe6;
   border-radius: 4px;
   color: #606266;

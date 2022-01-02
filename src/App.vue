@@ -2,6 +2,7 @@
 	<div id="app">
 		<div class="header"><img src="./assets/logo.png" /></div>
 		<input-at :list="list" :autoDelete="true"/>
+		<!-- <el-input class="input" @input="inputHandler"></el-input> -->
   	</div>
 </template>
 
@@ -44,10 +45,15 @@ export default {
 			name: "圣罗兰2",
 			picture: "../src/assets/2.png"
 		}]
-	return {
-		list
+		return {
+			list
+		}
+  	},
+	methods: {
+		inputHandler() {
+			
+		}
 	}
-  }
  
 };
 </script>
@@ -59,5 +65,9 @@ export default {
 }
 .header {
   text-align: center;
+}
+.input {
+	width: 300px;
+	margin: 10px 565px;
 }
 </style>
