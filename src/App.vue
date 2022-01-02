@@ -82,10 +82,19 @@ export default {
   mounted() {},
   methods: {
     inputHandler(e) {
+
       var selection = getSelection();
       lastEditRange = selection.getRangeAt(0);
 
-      let content = e.target.innerHTML;
+
+      let content = lastEditRange.startContainer.data;
+
+      // CONTENT不存在
+      if (!content) {
+        this.filteredList = [];
+        return;
+      }
+
       let cursorPos = lastEditRange.startOffset;
       let lastAtPos = content.lastIndexOf("@", cursorPos - 1);
 
@@ -97,6 +106,12 @@ export default {
 
       // 为邮箱格式
       if(lastAtPos > 1 && /[A-Za-z0-9]/.test(content[lastAtPos - 1])) {
+        this.filteredList = [];
+        return;
+      }
+
+      // 节点为div
+      if(selection.anchorNode.nodeName === 'DIV') {
         this.filteredList = [];
         return;
       }
@@ -120,6 +135,23 @@ export default {
         this.insertName(e, this.picked)
         e.preventDefault();
         e.stopPropagation();
+      }
+      // 回车换行
+      if(e.keyCode === 13 && this.filteredList.length < 1) {
+        // console.log('回车换行')
+        // let imitateInput = document.getElementById('imitateInput')
+        // let range = document.createRange();
+        // let selection = getSelection();
+        // let offset = selection.focusOffset
+        // let content = imitateInput.innerHTML
+        // imitateInput.innerHTML = content.slice(0,offset) + '&nbsp;' +  content.slice(offset)
+        // range.setStart(imitateInput.childNodes[0], offset + 1);
+        // range.collapse(true);
+        // selection.removeAllRanges();
+        // selection.addRange(range);
+        // e.preventDefault();
+        // e.stopPropagation();
+        // return false
       }
       // 上下键切换选中值 ArrowUp 38 ArrowDown 40
       if (e.keyCode === 38 && this.filteredList.length > 0) {
@@ -197,12 +229,6 @@ export default {
       // 记录最后光标对象
       lastEditRange = selection.getRangeAt(0);
 
-    },
-    getCursorPos() {
-      let selection = getSelection();
-      let range = selection.getRangeAt(0);
-      let cursorPos = range.startOffset;
-      return cursorPos;
     },
     getTipPos() {
       // 在光标处插入暂时性元素
