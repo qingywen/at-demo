@@ -1,7 +1,7 @@
 <template>
 	<div id="app">
 		<div class="header"><img src="./assets/logo.png" /></div>
-		<input-at :list="list"/>
+		<input-at :list="list" :autoDelete="true"/>
   	</div>
 </template>
 

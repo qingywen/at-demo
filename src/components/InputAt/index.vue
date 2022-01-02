@@ -45,6 +45,10 @@ export default {
             type: Array,
             default: []
         },
+		autoDelete: {
+			type: Boolean,
+			default: false
+		}
     },
     data() {
 		return {
@@ -61,7 +65,7 @@ export default {
   	methods: {
 
 		// input事件：根据条件唤起提示
-		inputHandler() {
+		inputHandler(e) {
 
 			var selection = getSelection();
 			lastEditRange = selection.getRangeAt(0);
@@ -126,6 +130,43 @@ export default {
 				let nextIndex = (curIndex + 1) % this.filteredList.length
 				this.picked = this.filteredList[nextIndex].name
 			}
+
+			// 删除人员后的空格，自动删除@人员，Backspace 8
+			if (e.keyCode === 8 && this.autoDelete) {
+
+				try {
+					var selection = getSelection();
+					lastEditRange = selection.getRangeAt(0);
+
+					var textNode = lastEditRange.startContainer;
+
+					let cursorPos = lastEditRange.startOffset;
+					let lastAtPos = textNode.data ? textNode.data.lastIndexOf("@", cursorPos - 1) : -1;
+					let count = cursorPos - lastAtPos;
+
+					let slice = textNode.data.slice(lastAtPos + 1, cursorPos - 1);
+					if(this.list.map(item=>item.name).indexOf(slice) > -1) {
+						// 先移光标
+
+						lastEditRange.setStart(textNode, lastAtPos);
+						lastEditRange.collapse(true);
+						selection.removeAllRanges();
+						selection.addRange(lastEditRange);
+
+						// 再删除
+						console.log('textNode:', textNode)
+						console.log('lastAtPos:', lastAtPos)
+						console.log('count:', count)
+						textNode.deleteData(lastAtPos, count)
+						e.preventDefault();
+						e.stopPropagation();
+					}
+					
+				} catch (error) {
+					
+				}
+
+			}
 		},
 
 		// 在光标处插入文本节点
@@ -145,7 +186,7 @@ export default {
 			// 获取插入字段
 			let cursorPos = lastEditRange.startOffset
 			let cut = selection.anchorOffset - inputEdit.innerHTML.lastIndexOf('@', cursorPos - 1 ) - 1;
-			val = val.slice(cut)
+			val = val.slice(cut) + ' '
 
 			// 根据节点类型插入字段
 			if (selection.anchorNode.nodeName != "#text") {
@@ -229,6 +270,8 @@ export default {
   margin: auto;
   overflow-y: auto;
   cursor: text;
+  white-space: pre-wrap;
+  word-wrap: break-word; 
 }
 #inputEdit:hover {
   border-color: #c0c4cc;
