@@ -6,17 +6,17 @@
         id="imitateInput"
         v-html="content"
         contenteditable
-        @input="changeHandler"
-        @keyup="keyUpHandler"
-        @click="clickHandler"
+        @input="inputHandler"
         @keydown="keydownHandler"
+        @click="clickHandler"
       ></div>
       <div
         v-if="filteredList.length > 0"
         id="imitateTip"
         class="imitate-tip"
-        :style="{ left: tipPos.x + 'px', bottom: tipPos.y + 'px' }"
+        :style="{ left: tipPos.x + 'px', bottom: tipPos.y +  'px' }"
       >
+        <div class="tip-arrow"></div>
         <div class="tip-box">
           <el-radio-group ref="imitateTip" class="is-focus" v-model="picked">
             <el-radio-button
@@ -81,32 +81,34 @@ export default {
   },
   mounted() {},
   methods: {
-    changeHandler(e) {
+    inputHandler(e) {
+      var selection = getSelection();
+      lastEditRange = selection.getRangeAt(0);
+
       let content = e.target.innerHTML;
-      let cursorPos = this.getCursorPos();
-      this.cursorPos = cursorPos;
+      let cursorPos = lastEditRange.startOffset;
       let lastAtPos = content.lastIndexOf("@", cursorPos - 1);
+
       // 没有@
       if (lastAtPos < 0) {
         this.filteredList = [];
         return;
       }
+
       // 为邮箱格式
-      if(lastAtPos > 1 && /[A-Za-z0-9]/.test(content[lastAtPos -1])) {
+      if(lastAtPos > 1 && /[A-Za-z0-9]/.test(content[lastAtPos - 1])) {
         this.filteredList = [];
         return;
       }
+
       let filter = content.slice(lastAtPos + 1, cursorPos);
+
       this.tipPos = this.getTipPos(cursorPos);
       this.filteredList = [...this.list.filter(
         (item) => item.name.indexOf(filter) > -1
       )];
       this.picked = this.filteredList[0] && this.filteredList[0].name;
-      console.log(this.filteredList)
-    },
-    keyUpHandler(e) {
-      var selection = getSelection();
-      lastEditRange = selection.getRangeAt(0);
+     
     },
     clickHandler(e) {
       var selection = getSelection();
@@ -145,14 +147,13 @@ export default {
         // 添加最后光标还原之前的状态
         selection.addRange(lastEditRange);
       }
-      console.log(selection)
-      let cursorPos = this.getCursorPos();
-      let cut = selection.anchorOffset - imitateInput.innerHTML.lastIndexOf('@', cursorPos + 1) - 1;
+      let cursorPos = lastEditRange.startOffset
+      let cut = selection.anchorOffset - imitateInput.innerHTML.lastIndexOf('@', cursorPos - 1 ) - 1;
       val = val.slice(cut)
       if (selection.anchorNode.nodeName != "#text") {
         var insertText = document.createTextNode(val);
-        if (edit.childNodes.length > 0) {
-          for (var i = 0; i < edit.childNodes.length; i++) {
+        if (imitateInput.childNodes.length > 0) {
+          for (var i = 0; i < imitateInput.childNodes.length; i++) {
             if (i == selection.anchorOffset) {
               imitateInput.insertBefore(insertText, imitateInput.childNodes[i]);
             }
@@ -195,6 +196,7 @@ export default {
       }
       // 记录最后光标对象
       lastEditRange = selection.getRangeAt(0);
+
     },
     getCursorPos() {
       let selection = getSelection();
@@ -213,8 +215,8 @@ export default {
 
       // 计算暂时性元素屏幕位置
       let rect = fakeNode.getBoundingClientRect();
-      let posX = rect.x - 50;
-      let posY = document.documentElement.clientHeight - rect.y + 20;
+      let posX = rect.x - 70;
+      let posY = document.documentElement.clientHeight - rect.y + 12;
 
       // 删除暂时性元素
       fakeNode.parentNode.removeChild(fakeNode);
@@ -259,18 +261,88 @@ export default {
 }
 .imitate-tip {
   width: 150px;
-  overflow: hidden;
+  /* overflow: hidden; */
   border-radius: 4px;
   border: 1px solid #dcdfe6;
   box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
   position: absolute;
-  z-index: 100;
 }
 .tip-box {
   width: 100%;
   max-height: 168px;
   overflow-y: scroll;
   position: relative;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.imitate-tip:before {
+  content: '';
+  display: block;
+  width: 22px;
+  height: 1px;
+  background: #fff;
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+.imitate-tip:after {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 1px;
+  position: absolute;
+  bottom: -4px;
+  left: calc(50% - 8px);
+  border-top: 4px solid #fff;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent; 
+    height: 0; 
+    width: 5px;
+}
+.tip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    bottom: -11px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    border-left: 7px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 12px solid #fff;
+}
+
+.tip-arrow:before {
+  content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 0 5px 0 0;
+    border: 1px solid #dcdfe6;
+    position: absolute;
+    bottom: 0px;
+    left: -14px;
+    transform: skew(30deg, 0deg);
+    border-left: none;
+    border-bottom: none;
+}
+.tip-arrow:after {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px 0 0 0;
+    position: absolute;
+    bottom: 0px;
+    right: -13px;
+    transform: skew(-30deg, 0deg);
+    border: 1px solid #dcdfe6;
+    border-right: none;
+    border-bottom: none;
+
 }
 .el-radio-button {
   width: 100%;
